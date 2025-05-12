@@ -17,6 +17,7 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline';
 import { useAuthStore } from './stores/authStore';
+import Toast from '@/components/Toast.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -211,6 +212,9 @@ const filteredMenuItems = computed(() => {
     <!-- Renderiza apenas o conteúdo da rota quando não autenticado (login/registro) -->
     <RouterView />
   </div>
+
+  <!-- Toast notification component -->
+  <Toast />
 </template>
 
 
