@@ -14,7 +14,7 @@ export async function printOrdemServico(
   options: PrintOptions = {}
 ) {
   const { 
-    title = `Ordem de Serviço #${ordem.id}`,
+    title = `C&D OS - Ordem de Serviço #${ordem.id}`,
     copies = 2,
     showPrintDialog = true
   } = options
@@ -42,6 +42,15 @@ export async function printOrdemServico(
       month: '2-digit',
       year: 'numeric'
     }).format(date)
+  }
+
+  // Função para formatar moeda
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return 'R$ 0,00'
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value)
   }
   
   // Geramos o conteúdo HTML para impressão
@@ -264,21 +273,75 @@ export async function printOrdemServico(
           .termos-list li {
             margin-bottom: 2px;
           }
+
+          .valores-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            border-top: 1px solid #ddd;
+            margin-top: 4px;
+          }
+
+          .valor-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+          }
+
+          .valor-total {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            margin-top: 2px;
+            padding-top: 3px;
+          }
+
+          .prioridade {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+            margin-left: 5px;
+          }
+
+          .prioridade-baixa {
+            background-color: #d1fae5;
+            color: #065f46;
+          }
+
+          .prioridade-media {
+            background-color: #dbeafe;
+            color: #1e40af;
+          }
+
+          .prioridade-alta {
+            background-color: #ffedd5;
+            color: #9a3412;
+          }
+
+          .prioridade-urgente {
+            background-color: #fee2e2;
+            color: #b91c1c;
+          }
+
+          .tecnico-info {
+            margin-top: 4px;
+            font-weight: bold;
+          }
         }
       </style>
     </head>
     <body>
       ${Array(copies).fill(null).map((_, index) => `
         <div class="ordem-servico">
-          <div class="watermark">ORDEM DE SERVIÇO</div>
+          <div class="watermark">C&D OS</div>
           <div class="copia">${index === 0 ? 'VIA CLIENTE' : 'VIA EMPRESA'}</div>
           <div class="header">
             ${configuracaoRaw.logo ? `<img src="${configuracaoRaw.logo}" class="logo" alt="Logo da empresa">` : ''}
             <div class="empresa-info">
-              <h1>${configuracaoRaw.nomeEmpresa}</h1>
+              <h1>C&D OS - Sistema de Ordens de Serviço</h1>
+              <p>${configuracaoRaw.nomeEmpresa}</p>
               <p>${configuracaoRaw.endereco}</p>
               <p>CNPJ: ${configuracaoRaw.cnpj} | Tel: ${configuracaoRaw.telefone}</p>
-              <p>Email: ${configuracaoRaw.email}</p>
             </div>
             <div class="ordem-info">
               <div>ORDEM DE SERVIÇO</div>
@@ -295,13 +358,13 @@ export async function printOrdemServico(
                 <div>${clienteRaw.nome}</div>
                 
                 <div class="bold">CPF/CNPJ:</div>
-                <div>${clienteRaw.cpf}</div>
+                <div>${clienteRaw.cpf || '-'}</div>
                 
                 <div class="bold">Telefone:</div>
                 <div>${clienteRaw.telefone}</div>
                 
                 <div class="bold">Email:</div>
-                <div>${clienteRaw.email}</div>
+                <div>${clienteRaw.email || '-'}</div>
               </div>
             </div>
             
@@ -318,7 +381,7 @@ export async function printOrdemServico(
                 <div>${ordemRaw.modelo}</div>
                 
                 <div class="bold">Nº de Série:</div>
-                <div>${ordemRaw.numeroSerie}</div>
+                <div>${ordemRaw.numeroSerie || '-'}</div>
               </div>
             </div>
           </div>
@@ -344,6 +407,19 @@ export async function printOrdemServico(
                   ordemRaw.status === 'concluido' ? 'CONCLUÍDO' :
                   'CANCELADO'
                 }
+                <span class="prioridade ${
+                  ordemRaw.prioridade === 'baixa' ? 'prioridade-baixa' :
+                  ordemRaw.prioridade === 'media' ? 'prioridade-media' :
+                  ordemRaw.prioridade === 'alta' ? 'prioridade-alta' :
+                  'prioridade-urgente'
+                }">
+                  ${
+                    ordemRaw.prioridade === 'baixa' ? 'BAIXA' :
+                    ordemRaw.prioridade === 'media' ? 'MÉDIA' :
+                    ordemRaw.prioridade === 'alta' ? 'ALTA' :
+                    'URGENTE'
+                  }
+                </span>
               </div>
               
               <div class="grid" style="margin-top: 4px;">
@@ -351,18 +427,44 @@ export async function printOrdemServico(
                 <div class="bold">Previsão:</div>
                 <div>${formatDate(ordemRaw.dataPrevisao)}</div>
                 ` : ''}
-                
-                ${ordemRaw.tecnicoResponsavel ? `
-                <div class="bold">Técnico:</div>
-                <div>${ordemRaw.tecnicoResponsavel}</div>
-                ` : ''}
+              </div>
+
+              ${ordemRaw.tecnicoResponsavel ? `
+              <div class="tecnico-info">
+                Técnico Responsável: ${ordemRaw.tecnicoResponsavel}
+              </div>
+              ` : ''}
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">VALORES</div>
+            <div class="valores-grid">
+              <div>
+                <div class="valor-item">
+                  <span>Valor do Serviço:</span>
+                  <span>${formatCurrency(ordemRaw.valorServico)}</span>
+                </div>
+                <div class="valor-item">
+                  <span>Valor das Peças:</span>
+                  <span>${formatCurrency(ordemRaw.valorPecas)}</span>
+                </div>
+                <div class="valor-item valor-total">
+                  <span>TOTAL:</span>
+                  <span>${formatCurrency((ordemRaw.valorServico || 0) + (ordemRaw.valorPecas || 0))}</span>
+                </div>
+              </div>
+              <div style="padding-left: 10px;">
+                <div class="status-box" style="width: 100%; text-align: center; margin-top: 10px;">
+                  ${ordemRaw.status === 'concluido' ? 'PAGO' : 'A PAGAR'}
+                </div>
               </div>
             </div>
           </div>
           
           ${ordemRaw.orcamento ? `
             <div class="section">
-              <div class="section-title">ORÇAMENTO</div>
+              <div class="section-title">ORÇAMENTO DETALHADO</div>
               <table>
                 <thead>
                   <tr>
@@ -374,12 +476,12 @@ export async function printOrdemServico(
                   ${ordemRaw.orcamento.itens.map(item => `
                     <tr>
                       <td>${item.descricao}</td>
-                      <td style="text-align: right;">R$ ${item.valor.toFixed(2)}</td>
+                      <td style="text-align: right;">${formatCurrency(item.valor)}</td>
                     </tr>
                   `).join('')}
                   <tr>
                     <td style="text-align: right; font-weight: bold; padding-top: 5px;">TOTAL:</td>
-                    <td style="text-align: right; font-weight: bold; padding-top: 5px;">R$ ${ordemRaw.orcamento.valor.toFixed(2)}</td>
+                    <td style="text-align: right; font-weight: bold; padding-top: 5px;">${formatCurrency(ordemRaw.orcamento.valor)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -389,26 +491,28 @@ export async function printOrdemServico(
           <div class="section">
             <div class="section-title">TERMOS E CONDIÇÕES</div>
             <ul class="termos-list">
-              <li>A garantia dos serviços é de ${configuracaoRaw.termosGarantia}.</li>
+              <li>A garantia dos serviços é de ${configuracaoRaw.termosGarantia || '30 dias'}.</li>
               <li>Os dados e arquivos presentes no equipamento são de responsabilidade exclusiva do cliente.</li>
               <li>Equipamentos não retirados em até 90 dias após a conclusão do serviço serão considerados abandonados.</li>
               <li>O prazo para reclamações é de 7 dias após a entrega do equipamento.</li>
+              <li>Todo serviço tem garantia conforme especificações do técnico responsável.</li>
             </ul>
           </div>
           
           <div class="assinaturas">
             <div class="assinatura">
               <p>__________________________________</p>
-              <p>Cliente</p>
+              <p>Cliente: ${clienteRaw.nome}</p>
             </div>
             <div class="assinatura">
               <p>__________________________________</p>
-              <p>Responsável Técnico</p>
+              <p>Técnico: ${ordemRaw.tecnicoResponsavel || 'Responsável Técnico'}</p>
             </div>
           </div>
           
           <div class="footer">
-            <p>${configuracaoRaw.nomeEmpresa} - ${configuracaoRaw.cnpj} - ${configuracaoRaw.endereco} - Tel: ${configuracaoRaw.telefone}</p>
+            <p>${configuracaoRaw.nomeEmpresa} - ${configuracaoRaw.cnpj} - ${configuracaoRaw.endereco}</p>
+            <p>Tel: ${configuracaoRaw.telefone} - Email: ${configuracaoRaw.email || ''}</p>
           </div>
         </div>
       `).join('')}

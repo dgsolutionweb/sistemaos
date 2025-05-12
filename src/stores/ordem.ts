@@ -115,6 +115,7 @@ export const useOrdemStore = defineStore('ordem', () => {
         data_entrada: ordem.dataEntrada,
         data_previsao: ordem.dataPrevisao,
         data_prevista: ordem.dataPrevista,
+        valor_servico: ordem.valorServico || null,
         tecnico_responsavel: ordem.tecnicoResponsavel || null // Use null instead of empty string
       }
       

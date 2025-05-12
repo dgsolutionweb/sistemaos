@@ -72,7 +72,9 @@
               <div class="flex">
                 <div class="flex-shrink-0">
                   <ClockIcon v-if="ordem.status === 'pendente'" class="h-5 w-5 text-yellow-400" />
-                  <WrenchScrewdriverIcon v-if="ordem.status === 'em_andamento'" class="h-5 w-5 text-blue-400" />
+                  <WrenchScrewdriverIcon v-if="['em_andamento', 'em_analise', 'em_execucao'].includes(ordem.status)" class="h-5 w-5 text-blue-400" />
+                  <DocumentTextIcon v-if="['orcamento', 'aprovado'].includes(ordem.status)" class="h-5 w-5 text-purple-400" />
+                  <ClockIcon v-if="ordem.status === 'aguardando'" class="h-5 w-5 text-amber-400" />
                   <CheckCircleIcon v-if="ordem.status === 'concluido'" class="h-5 w-5 text-green-400" />
                   <XCircleIcon v-if="ordem.status === 'cancelado'" class="h-5 w-5 text-red-400" />
                 </div>
@@ -83,6 +85,7 @@
                   <div class="mt-2 text-sm text-gray-500">
                     <p>Criado em {{ formatDate(ordem.dataCriacao) }}</p>
                     <p v-if="ordem.dataConclusao">Concluído em {{ formatDate(ordem.dataConclusao) }}</p>
+                    <p v-if="ordem.dataPrevisao">Previsão de entrega: {{ formatDate(ordem.dataPrevisao) }}</p>
                   </div>
                 </div>
               </div>
@@ -107,6 +110,68 @@
                 Atualizar Status
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Técnico Responsável -->
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-base font-semibold leading-6 text-gray-900">Técnico Responsável</h3>
+          <div class="mt-5 border-t border-gray-200">
+            <dl class="divide-y divide-gray-200">
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Nome</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                  {{ ordem.tecnicoResponsavel || 'Não atribuído' }}
+                </dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Prioridade</dt>
+                <dd class="mt-1 sm:col-span-2 sm:mt-0">
+                  <span 
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                    :class="{
+                      'bg-green-100 text-green-800': ordem.prioridade === 'baixa',
+                      'bg-blue-100 text-blue-800': ordem.prioridade === 'media',
+                      'bg-orange-100 text-orange-800': ordem.prioridade === 'alta',
+                      'bg-red-100 text-red-800': ordem.prioridade === 'urgente'
+                    }"
+                  >
+                    {{ formatPrioridade(ordem.prioridade) }}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informações Financeiras -->
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-base font-semibold leading-6 text-gray-900">Informações Financeiras</h3>
+          <div class="mt-5 border-t border-gray-200">
+            <dl class="divide-y divide-gray-200">
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Valor do Serviço</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 sm:col-span-2 sm:mt-0">
+                  {{ ordem.valorServico ? formatCurrency(ordem.valorServico) : 'Não informado' }}
+                </dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Valor das Peças</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                  {{ ordem.valorPecas ? formatCurrency(ordem.valorPecas) : 'Não informado' }}
+                </dd>
+              </div>
+              <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 border-t-2 border-gray-300">
+                <dt class="text-sm font-medium text-gray-900">Total</dt>
+                <dd class="mt-1 text-sm font-bold text-gray-900 sm:col-span-2 sm:mt-0">
+                  {{ calcularValorTotal() }}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       </div>
@@ -182,7 +247,8 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ShieldCheckIcon,
-  PrinterIcon
+  PrinterIcon,
+  DocumentTextIcon
 } from '@heroicons/vue/24/outline'
 import Spinner from '../components/Spinner.vue'
 import PrintDialog from '../components/PrintDialog.vue'
@@ -285,5 +351,37 @@ const handlePrint = async (copies: number) => {
       printLoading.value = false
     }
   }
+}
+
+// Formatação de moeda
+const formatCurrency = (value: number | undefined) => {
+  if (value === undefined || value === null) return 'R$ 0,00'
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value)
+}
+
+// Formatação de prioridade
+const formatPrioridade = (prioridade: string | undefined) => {
+  if (!prioridade) return 'Média'
+  
+  const labels = {
+    baixa: 'Baixa',
+    media: 'Média',
+    alta: 'Alta',
+    urgente: 'Urgente'
+  }
+  
+  return labels[prioridade as keyof typeof labels] || 'Média'
+}
+
+// Calcular valor total
+const calcularValorTotal = () => {
+  const valorServico = ordem.value?.valorServico || 0
+  const valorPecas = ordem.value?.valorPecas || 0
+  const total = valorServico + valorPecas
+  
+  return formatCurrency(total)
 }
 </script> 

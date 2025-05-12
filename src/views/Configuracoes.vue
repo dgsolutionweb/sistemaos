@@ -181,6 +181,172 @@
         </div>
       </div>
 
+      <!-- Gerenciamento de Usuários -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Gerenciamento de Usuários</h2>
+        
+        <div class="mb-6">
+          <h3 class="text-base font-medium text-gray-800 mb-3">Adicionar Novo Atendente</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                v-model="novoUsuario.nome"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Nome do atendente"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                v-model="novoUsuario.email"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="email@exemplo.com"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
+                Senha
+              </label>
+              <input
+                type="password"
+                v-model="novoUsuario.senha"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Senha"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
+                Confirmar Senha
+              </label>
+              <input
+                type="password"
+                v-model="novoUsuario.confirmarSenha"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Confirme a senha"
+              />
+            </div>
+          </div>
+          
+          <div v-if="usuarioErro" class="mt-3 text-sm text-red-600">
+            {{ usuarioErro }}
+          </div>
+          
+          <div class="mt-4 flex justify-end">
+            <button
+              type="button"
+              @click="criarUsuario"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              :disabled="cadastrandoUsuario"
+            >
+              <svg v-if="cadastrandoUsuario" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ cadastrandoUsuario ? 'Cadastrando...' : 'Adicionar Atendente' }}
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <h3 class="text-base font-medium text-gray-800 mb-3">Usuários do Sistema</h3>
+          
+          <div v-if="carregandoUsuarios" class="flex justify-center py-4">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+          </div>
+          
+          <div v-else-if="usuarios.length === 0" class="text-center py-4 text-gray-500">
+            Nenhum usuário encontrado.
+          </div>
+          
+          <div v-else class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Função
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Último Acesso
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="usuario in usuarios" :key="usuario.id">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img
+                          :src="usuario.foto || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(usuario.nome) + '&background=random'"
+                          class="h-10 w-10 rounded-full"
+                          alt=""
+                        />
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">
+                          {{ usuario.nome }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ usuario.email }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      :class="{
+                        'bg-green-100 text-green-800': usuario.tipo === 'admin',
+                        'bg-blue-100 text-blue-800': usuario.tipo === 'tecnico',
+                        'bg-purple-100 text-purple-800': usuario.tipo === 'atendente'
+                      }"
+                    >
+                      {{ 
+                        usuario.tipo === 'admin' ? 'Administrador' : 
+                        usuario.tipo === 'tecnico' ? 'Técnico' : 'Atendente' 
+                      }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      :class="{
+                        'bg-green-100 text-green-800': usuario.ativo,
+                        'bg-red-100 text-red-800': !usuario.ativo
+                      }"
+                    >
+                      {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ usuario.ultimoAcesso ? formatarData(usuario.ultimoAcesso) : 'Nunca acessou' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Limpar Dados do Sistema -->
       <div class="bg-white shadow rounded-lg p-6 border border-red-200">
         <h2 class="text-lg font-medium text-red-800 mb-4">Manutenção do Sistema</h2>
@@ -332,15 +498,32 @@ import {
   TransitionRoot,
 } from '@headlessui/vue'
 import type { ConfiguracaoEmpresa } from '@/types';
+import type { Usuario } from '@/types/usuario';
+import { useAuthStore } from '@/stores/authStore';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const configStore = useConfigStore();
 const ordemStore = useOrdemStore();
+const authStore = useAuthStore();
 const toast = useToast();
 const logoPreview = ref<string | null>(null);
 const showLimparDadosModal = ref(false);
 const senha = ref('');
 const senhaErro = ref('');
 const limpandoDados = ref(false);
+
+// Estado para gerenciamento de usuários
+const usuarios = ref<Usuario[]>([]);
+const carregandoUsuarios = ref(false);
+const cadastrandoUsuario = ref(false);
+const usuarioErro = ref('');
+const novoUsuario = ref({
+  nome: '',
+  email: '',
+  senha: '',
+  confirmarSenha: ''
+});
 
 const diasSemana = [
   'Segunda',
@@ -373,7 +556,134 @@ onMounted(async () => {
   if (configStore.configuracao) {
     formData.value = { ...configStore.configuracao };
   }
+  
+  // Carregar lista de usuários
+  await buscarUsuarios();
 });
+
+// Função para formatar data no formato brasileiro
+const formatarData = (dataString: string) => {
+  try {
+    return format(new Date(dataString), 'dd/MM/yyyy HH:mm', { locale: ptBR });
+  } catch (error) {
+    return 'Data inválida';
+  }
+};
+
+// Função para buscar usuários do sistema
+const buscarUsuarios = async () => {
+  carregandoUsuarios.value = true;
+  
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('nome');
+    
+    if (error) {
+      throw error;
+    }
+    
+    usuarios.value = data.map(user => ({
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+      tipo: user.tipo,
+      foto: user.foto,
+      ativo: user.ativo,
+      ultimoAcesso: user.ultimo_acesso
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    toast.show({
+      message: 'Erro ao carregar lista de usuários',
+      type: 'error'
+    });
+  } finally {
+    carregandoUsuarios.value = false;
+  }
+};
+
+// Função para criar um novo usuário
+const criarUsuario = async () => {
+  // Resetar erro
+  usuarioErro.value = '';
+  
+  // Validar campos
+  if (!novoUsuario.value.nome.trim()) {
+    usuarioErro.value = 'O nome é obrigatório';
+    return;
+  }
+  
+  if (!novoUsuario.value.email.trim()) {
+    usuarioErro.value = 'O email é obrigatório';
+    return;
+  }
+  
+  if (!novoUsuario.value.senha) {
+    usuarioErro.value = 'A senha é obrigatória';
+    return;
+  }
+  
+  if (novoUsuario.value.senha.length < 6) {
+    usuarioErro.value = 'A senha deve ter pelo menos 6 caracteres';
+    return;
+  }
+  
+  if (novoUsuario.value.senha !== novoUsuario.value.confirmarSenha) {
+    usuarioErro.value = 'As senhas não coincidem';
+    return;
+  }
+  
+  cadastrandoUsuario.value = true;
+  
+  try {
+    // 1. Registrar o usuário usando o authStore
+    const sucesso = await authStore.registrar(
+      novoUsuario.value.nome,
+      novoUsuario.value.email,
+      novoUsuario.value.senha
+    );
+    
+    if (!sucesso) {
+      throw new Error(authStore.erro || 'Falha ao registrar usuário');
+    }
+    
+    // 2. Limpar o formulário e mostrar mensagem de sucesso
+    novoUsuario.value = {
+      nome: '',
+      email: '',
+      senha: '',
+      confirmarSenha: ''
+    };
+    
+    toast.show({
+      message: 'Atendente cadastrado com sucesso!',
+      type: 'success'
+    });
+    
+    // 3. Atualizar a lista de usuários
+    await buscarUsuarios();
+    
+  } catch (error) {
+    console.error('Erro ao criar usuário:', error);
+    
+    // Lidar com erros comuns
+    if (error instanceof Error) {
+      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        usuarioErro.value = 'Este email já está registrado no sistema';
+      } else if (error.message.includes('password')) {
+        usuarioErro.value = 'A senha não atende aos requisitos de segurança';
+      } else {
+        usuarioErro.value = error.message;
+      }
+    } else {
+      usuarioErro.value = 'Ocorreu um erro ao criar o usuário';
+    }
+  } finally {
+    cadastrandoUsuario.value = false;
+  }
+};
 
 const handleLogoChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
