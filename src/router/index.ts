@@ -10,7 +10,7 @@ import Garantias from '@/views/Garantias.vue'
 import Kanban from '@/views/Kanban.vue'
 import Orcamentos from '@/views/Orcamentos.vue'
 import Login from '@/views/Login.vue'
-import Registro from '@/views/Registro.vue'
+// Registration option removed
 import { useAuthStore } from '../stores/authStore'
 
 const router = createRouter({
@@ -22,12 +22,7 @@ const router = createRouter({
       component: Login,
       meta: { requiresAuth: false }
     },
-    {
-      path: '/registro',
-      name: 'registro',
-      component: Registro,
-      meta: { requiresAuth: false }
-    },
+    // Registration route removed
     {
       path: '/',
       name: 'home',
@@ -125,8 +120,8 @@ router.beforeEach((to, from, next) => {
     // Redirecionar para home se não for admin
     next({ name: 'home' })
   }
-  // Redirecionando para home se já estiver logado e tentar acessar login/registro
-  else if (!to.meta.requiresAuth && authStore.isLoggedIn && (to.name === 'login' || to.name === 'registro')) {
+  // Redirecionando para home se já estiver logado e tentar acessar login
+  else if (!to.meta.requiresAuth && authStore.isLoggedIn && to.name === 'login') {
     next({ name: 'home' })
   }
   else {

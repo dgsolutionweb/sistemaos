@@ -55,8 +55,8 @@ const isAuthPage = computed(() => {
   return route.name === 'login' || route.name === 'registro';
 });
 
-const logout = () => {
-  authStore.logout();
+const logout = async () => {
+  await authStore.logout();
   router.push('/login');
 };
 
@@ -80,7 +80,7 @@ const filteredMenuItems = computed(() => {
     >
       <!-- Logo -->
       <div class="flex items-center p-4 h-16" :class="[sidebarOpen ? 'justify-between' : 'justify-center']">
-        <h1 v-if="sidebarOpen" class="text-xl font-bold text-gray-800 truncate">Assistência Técnica</h1>
+        <h1 v-if="sidebarOpen" class="text-xl font-bold text-gray-800 truncate">C&D OS</h1>
         <button 
           @click="toggleSidebar" 
           class="rounded p-1 hover:bg-gray-100 focus:outline-none"
@@ -91,7 +91,7 @@ const filteredMenuItems = computed(() => {
       </div>
 
       <!-- Menu items -->
-      <nav class="flex-1 py-4 space-y-1 overflow-y-auto">
+      <nav class="flex-1 py-4 space-y-1 overflow-hidden">
         <RouterLink
           v-for="item in filteredMenuItems"
           :key="item.path"
@@ -141,7 +141,7 @@ const filteredMenuItems = computed(() => {
       >
         <!-- Logo -->
         <div class="flex items-center justify-between p-4 h-16">
-          <h1 class="text-xl font-bold text-gray-800">Assistência Técnica</h1>
+          <h1 class="text-xl font-bold text-gray-800">C&D OS</h1>
           <button 
             @click="mobileMenuOpen = false" 
             class="p-1 rounded hover:bg-gray-100 focus:outline-none"
@@ -151,7 +151,7 @@ const filteredMenuItems = computed(() => {
         </div>
 
         <!-- Menu items -->
-        <nav class="flex-1 py-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 py-4 space-y-1 overflow-hidden">
           <RouterLink
             v-for="item in filteredMenuItems"
             :key="item.path"
@@ -193,7 +193,7 @@ const filteredMenuItems = computed(() => {
     <div class="flex-1 flex flex-col w-full h-full overflow-hidden main-content">
       <!-- Top bar mobile -->
       <header class="flex items-center justify-between p-4 bg-white shadow md:hidden">
-        <h1 class="text-xl font-bold text-gray-800">Assistência Técnica</h1>
+        <h1 class="text-xl font-bold text-gray-800">C&D OS</h1>
         <button
           @click="mobileMenuOpen = true"
           class="p-1 rounded-md hover:bg-gray-100"
